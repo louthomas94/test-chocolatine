@@ -1,17 +1,24 @@
 name: chocolatine
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  prevent_push:
+  build:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
 
-    - name: Check for .o files
-      run: |
-        if git diff --name-only HEAD^..HEAD | grep -q '\.o$'; then
-          echo "Error: .o files were pushed to the repository"
-          exit 1
-        fi
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: check .o
+        run: |
+          git rm -r --cached "*.o"
+          git add .
+          git commit -m "Supprimer les fichiers .o"
+          git push --force
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
