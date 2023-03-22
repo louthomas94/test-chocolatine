@@ -1,0 +1,17 @@
+name: chocolatine
+
+on: push
+
+jobs:
+  prevent_push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Check for .o files
+      run: |
+        if git diff --name-only HEAD^..HEAD | grep -q '\.o$'; then
+          echo "Error: .o files were pushed to the repository"
+          exit 1
+        fi
