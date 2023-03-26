@@ -10,7 +10,7 @@ on:
 
 env:
   MIRROR_URL: "https://github.com/louthomas94/choco.git"
-  EXECUTABLES: "bsq"
+  EXECUTABLES: "bsq,unit_tests"
 
 jobs:
   check_coding_style:
