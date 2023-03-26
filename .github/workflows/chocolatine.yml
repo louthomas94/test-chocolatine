@@ -1,24 +1,73 @@
-name: chocolatine
+name: Chocolate Workflow
 
 on:
   push:
     branches:
-      - main
+      - 'main'
+  pull_request:
+
+env:
+  MIRROR_URL: "https://example.com/my-repo.git"
+  EXECUTABLES: "myexecutable,lib/mylib.a"
 
 jobs:
-  build:
+  check_coding_style:
     runs-on: ubuntu-latest
-
+    container: ghcr.io/epitech/coding-style-checker:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Run coding style checker
+        run: check.sh $(pwd) $(pwd)
+      - name: Display coding style errors
+        if: failure()
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: "**/coding-style-errors.xml"
+          file_name: "Coding Style Errors"
+      - name: Fail job on errors
+        if: failure()
+        run: exit 1
 
-      - name: .o
+  check_program_compilation:
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Compile program
+        run: make
+      - name: Clean up
+        run: make clean
+      - name: Verify executables
         run: |
-          git rm -r --cached "*.o"
-          git add .
-          git commit -m "Supprimer les fichiers .o"
-          git push --force
+          for exe in $(echo $EXECUTABLES | sed "s/,/ /g"); do
+            if [ ! -x "$exe" ]; then
+              echo "ERROR: $exe not found or not executable"
+              exit 1
+            fi
+          done
 
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run_tests:
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker
+    timeout-minutes: 2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run tests
+        run: make tests_run
+
+  push_to_mirror:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Push to mirror repository
+        uses: mirror-actions/git-push@v1
+        with:
+          ssh-private-key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+          destination-repo: ${{ env.MIRROR_URL }}
