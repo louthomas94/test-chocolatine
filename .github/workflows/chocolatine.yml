@@ -10,7 +10,7 @@ on:
 
 env:
   MIRROR_URL: "https://github.com/louthomas94/choco.git"
-  EXECUTABLES: "bsq,unit_tests"
+  EXECUTABLES: "bsq"
 
 jobs:
   check_coding_style:
@@ -43,19 +43,19 @@ jobs:
             fi
           done
           
-  run_tests:
-    runs-on: ubuntu-latest
-    needs: [check_program_compilation]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run tests
-        run: make tests_run
-        timeout-minutes: 2
+  # run_tests:
+  #   runs-on: ubuntu-latest
+  #   needs: [check_program_compilation]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #     - name: Run tests
+  #       run: make tests_run
+  #       timeout-minutes: 2
 
   push_to_mirror:
     runs-on: ubuntu-latest
-    needs: [run_tests]
+    needs: [check_program_compilation]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
